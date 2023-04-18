@@ -19,9 +19,6 @@ class GamesHandler:
             length=request_body['length'], order_by=request_body['order'][0]
         )
         response['draw'] = request_body['draw']
-        print(Team.objects.all().last())
-        print(Team.objects.all().last().games)
-        print(Team.objects.all().last().wins, Team.objects.all().last().loses, Team.objects.all().last().draws)
         return JsonResponse(data=response, status=HTTPStatus.OK)
 
     def delete_game(request):
@@ -66,10 +63,8 @@ class GamesHandler:
             guest_team, _ = Team.objects.get_or_create(name=request_body.get('guest_team'))
         except:
             return JsonResponse({'message': 'Guest team error'}, status=HTTPStatus.BAD_REQUEST)
-        print(host_team, type(host_team))
         host_team_score = request_body.get('host_team_score')
         guest_team_score = request_body.get('guest_team_score')
-        print(host_team, host_team_score, guest_team, guest_team_score)
         game = Game.objects.create(host_team=host_team, host_team_score=host_team_score, guest_team=guest_team,
                                    guest_team_score=guest_team_score)
         game.clean()
