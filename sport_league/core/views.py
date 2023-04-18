@@ -1,9 +1,12 @@
 # Django Imports
 
-
+from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.urls import reverse_lazy, reverse
+from django.views.generic import FormView
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
@@ -17,7 +20,62 @@ from http import HTTPStatus
 from json import loads
 
 
+class SignupView(FormView):
+    template_name = "account/sign_up.html"
+    form_class = CustomUserCreationForm
+    success_url = "/"
 
+    def form_valid(self, form):
+        user = form.save()
+        email = form.cleaned_data.get("email")
+        password = form.cleaned_data.get("password1")
+        user = authenticate(email=email, password=password)
+        login(self.request, user)
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        error_messages = []
+        for _, errors in form.errors.items():
+            for error in errors:
+                error_messages.append(error)
+        ctx = {
+            "form": form,
+            "error_messages": error_messages,
+        }
+        return render(self.request, self.template_name, ctx)
+
+
+class SigninView(FormView):
+    template_name = "account/sign_in.html"
+    form_class = AuthenticationForm
+    success_url = "/"
+
+    def form_valid(self, form):
+        email = form.cleaned_data.get("username")
+        password = form.cleaned_data.get("password")
+        user = authenticate(email=email, password=password)
+        if user is not None:
+            login(self.request, user)
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        error_messages = []
+        for _, errors in form.errors.items():
+            for error in errors:
+                error_messages.append(error)
+        ctx = {
+            "form": form,
+            "error_messages": error_messages,
+        }
+        return render(self.request, self.template_name, ctx)
+
+
+def logout_view(request):
+    logout(request)
+    return redirect(reverse_lazy("core:sign_up"))
+
+
+@login_required
 @csrf_exempt
 def handler(request, *args, **kwargs):
     if request.method == "POST":
@@ -40,6 +98,7 @@ def handler(request, *args, **kwargs):
             )
 
 
+@login_required
 def upload_csv(request):
     if request.method == 'POST':
         csv_file = request.FILES.get('csv_file', None)

@@ -78,7 +78,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'league.wsgi.application'
+WSGI_APPLICATION = 'sport_league.wsgi.application'
 
 
 # Database

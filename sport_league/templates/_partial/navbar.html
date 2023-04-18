@@ -8,7 +8,6 @@
         <ul class="navbar-nav">
           {% if not request.user.is_authenticated %}
             <li class="nav-item">
-{#            TODO: ADD login/signup and logout #}
                 <a class="nav-link" href="{% url 'core:sign_up' %}">SignUP</a>
             </li>
             <li class="nav-item">
