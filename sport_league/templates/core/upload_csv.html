@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+    {% if request.user.is_authenticated %}
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" name="csv_file">
+            <button type="submit">Upload</button>
+        </form>
+        {% if error %}
+            <script>
+                addEventListener("DOMContentLoaded", (event) => {
+                    toastr.error('{{ error }}', 'Error')
+                });
+            </script>
+        {% endif %}
+    {% else %}
+        <h2> Please <a href="{% url 'core:sign_up' %}">Sign up</a> /<a href="{% url 'core:sign_in' %}">Sign in</a> First
+        </h2>
+    {% endif %}
+{% endblock %}

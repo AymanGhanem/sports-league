@@ -1,0 +1,52 @@
+.add-btn {
+    background-color: #03218a;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    margin: 10px 0px;
+    cursor: pointer;
+    border-radius: 5px;
+    float: right;
+    transition: all 0.2s ease-in-out;
+}
+
+.add-btn i {
+    margin-right: 10px;
+}
+
+.add-btn:hover {
+    background-color: #664a19;
+}
+
+.navbar {
+  background-color: #03218a;
+}
+.navbar-brand, .navbar-nav .nav-link {
+  color: #e7e3e3;
+}
+.navbar-brand:hover, .navbar-nav .nav-link:hover {
+  color: #f8f9fa;
+}
+.table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.table td, .table th {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+.table th {
+  background-color: #03218a;
+  color: #fff;
+}
+.table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+.table tr:hover {
+  background-color: #0434e2;
+}
