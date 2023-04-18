@@ -78,6 +78,7 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'sport_league.wsgi.application'
 
 
