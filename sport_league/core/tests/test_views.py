@@ -49,11 +49,11 @@ class SigninViewTestCase(TestCase):
     def setUp(self):
         self.url = reverse("core:sign_in")
         self.user_data = {
-            "email": "test@gmail.com",
+            "username": "test@gmail.com",
             "password": "QAZ123zaq321?",
         }
         self.invalid_user_data = {
-            "email": "test@gmail.com",
+            "username": "test@gmail.com",
             "password": "wrong_password",
         }
         self.user = User.objects.create_user(
