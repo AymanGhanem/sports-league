@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    {% if request.user.is_authenticated %}
+<input type="hidden" id="tables_handler" value="{% url 'core:handler' %}" />
+<input type="hidden" id="page" style="display:none;" value="{{ title }}" />
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header" id="games-table-header">Games
+          <button class="add-btn" onclick="openGamesModal(true)">
+            <i class="fas fa-plus"></i> Add Item
+          </button>           
+        </div>
+        <div class="card-body">
+          <table id="games_data_table" class="table table-sm table-bordered w-100">
+            <thead>
+              <tr>
+                <th class="text-center d-sm-table-cell">ID</th>
+                <th class="text-center d-sm-table-cell">Team 1 Name</th>
+                <th class="text-center d-sm-table-cell">Team 1 Score</th>
+                <th class="text-center d-sm-table-cell">Team 2 Name</th>
+                <th class="text-center d-sm-table-cell">Team 2 Score</th>
+                <th class="text-center d-sm-table-cell">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header">Rankings</div>
+        <div class="card-body">
+          <table id="rankings_data_table" class="table table-sm table-bordered w-100">
+            <thead>
+              <tr>
+                <th class="text-center d-sm-table-cell">Rank</th>
+                <th class="text-center d-sm-table-cell">Team Name</th>
+                <th class="text-center d-sm-table-cell">Points</th>
+                <th class="text-center d-sm-table-cell">Award</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit game modal -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">{{ modalTitle }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="close-modal-sign">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <input type="hidden" id="edit-game-id">
+            <div class="form-group">
+              <label for="edit-team-1-name" class="col-form-label">Team 1 Name:</label>
+              <input type="text" class="form-control" id="edit-team-1-name">
+            </div>
+            <div class="form-group">
+              <label for="edit-team-1-score" class="col-form-label">Team 1 Score:</label>
+              <input type="text" class="form-control" id="edit-team-1-score">
+            </div>
+            <div class="form-group">
+              <label for="edit-team-2-name" class="col-form-label">Team 2 Name:</label>
+              <input type="text" class="form-control" id="edit-team-2-name">
+            </div>
+            <div class="form-group">
+              <label for="edit-team-2-score" class="col-form-label">Team 2 Score:</label>
+              <input type="text" class="form-control" id="edit-team-2-score">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" id="close-modal">Close</button>
+          <button type="button" class="btn btn-primary" id="save-changes-btn">Save changes</button>
+        </div>
+      </div>
+    </div>
+</div>
+  
+
+
+
+
+
+<script>
+    window.onload = () => {
+
+        {% if success %}
+        toastr.success('{{ success }}')
+         {% endif %}
+        const gamesTableColDefs = [
+            { targets: 0, data: "id"},
+            { targets: 1, data: "host_team_id"},
+            { targets: 2, data: "host_team_score", orderable: false},
+            { targets: 3, data: "guest_team_id" },
+            { targets: 4, data: "guest_team_score", orderable: false},
+            { targets: 5, data: null, render: function (data, type, row, meta) {
+                    return `
+                            <td>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-primary btn-sm edit-btn" data-row-id="${row.id}" onclick="openGamesModal(false)">Edit</button>
+                                    <button type="button" class="btn btn-danger btn-sm delete-btn" data-row-id="${row.id}">Delete</button>
+                                </div>
+                            </td>`
+                }, orderable: false
+            },
+        ]
+        const gamesTableOptions = {
+            serverSide: true, responsive: true, scrollCollapse: true,
+            scrollY: "50vh", scrollX: true, order: [[0, "asc"]],
+            columnDefs: gamesTableColDefs,
+            ajax: function (data, callback, settings) {
+                data['operation'] = 'list_games'
+                axios.post(document.getElementById('tables_handler').value, data).then(result => { callback(result.data) })
+            }
+        };
+
+const rankingsTableColDefs = [
+    { targets: 0, data: "rank"},
+    { targets: 1, data: "name", orderable: false},
+    { targets: 2, data: "points", orderable: false},
+    {
+        targets: 3, data: "Award", render: function (data, type, row, meta) {
+            // TODO: handle all cases
+            if (row.rank == 1) {
+                return '<i class="fa-solid fa-medal" style="color: #c9d704;"></i>';
+            } else if (row.rank == 2) {
+                return '<i class="fa-solid fa-medal" style="color: #c0c0c0;"></i>';
+            } else if (row.rank == 3) {
+                return '<i class="fa-solid fa-medal" style="color: #cd7f32;"></i>';
+            } else {
+                return 'No Award';
+            }
+        },
+        orderable: false
+    }
+];
+        const rankingsTableOptions = {
+            serverSide: true, responsive: true, scrollCollapse: true,
+            scrollY: "50vh", scrollX: true, order: [[0, "asc"]],
+            columnDefs: rankingsTableColDefs,
+            ajax: function (data, callback, settings) {
+                data['operation'] = 'get_rankings'
+                axios.post(document.getElementById('tables_handler').value, data).then(result => { callback(result.data) })
+            }
+        };
+
+        $('#games_data_table tbody').on('click', '.edit-btn', function () {
+            var id = $(this).data('row-id');
+            var row = $('#games_data_table').DataTable().row($(this).parents('tr')).data();
+            $('#edit-game-id').val(row.id);
+            $('#edit-team-1-name').val(row.host_team_id);
+            $('#edit-team-1-score').val(row.host_team_score);
+            $('#edit-team-2-name').val(row.guest_team_id);
+            $('#edit-team-2-score').val(row.guest_team_score);
+            $('#editModal').modal('show');
+        });
+
+        $('#games-table-header').on('click', '.add-btn', function () {
+          $('#edit-team-1-name').val("");
+          $('#edit-team-1-score').val("");
+          $('#edit-team-2-name').val("");
+          $('#edit-team-2-score').val("");
+          $('#editModal').modal('show');
+        });
+
+        $('#save-changes-btn').on('click', function () {
+            var id = document.getElementById('edit-game-id').value;
+            var host_team = document.getElementById('edit-team-1-name').value;
+            var host_team_score = document.getElementById('edit-team-1-score').value;
+            var guest_team = document.getElementById('edit-team-2-name').value;
+            var guest_team_score = document.getElementById('edit-team-2-score').value;
+
+            if($('#editModalLabel').text().includes('Edit')) {
+              axios.post(document.getElementById('tables_handler').value, {
+                operation: 'edit_game',
+                id: id,
+                host_team: host_team,
+                host_team_score: host_team_score,
+                guest_team: guest_team,
+                guest_team_score: guest_team_score,
+              }).then(() => {
+                $('#editModal').modal('hide');
+                $('#games_data_table').DataTable().ajax.reload();
+                $('#rankings_data_table').DataTable().ajax.reload();
+                  toastr.success('Game edited successfully!');
+              });
+            } else {
+              axios.post(document.getElementById('tables_handler').value, {
+                operation: 'add_game',
+                host_team: host_team,
+                host_team_score: host_team_score,
+                guest_team: guest_team,
+                guest_team_score: guest_team_score,
+              }).then(() => {
+                $('#editModal').modal('hide');
+                $('#games_data_table').DataTable().ajax.reload();
+                $('#rankings_data_table').DataTable().ajax.reload();
+                   toastr.success('Game added successfully!');
+              });
+            }
+        });
+    
+
+        $('#close-modal').on('click', function () {
+            $('#editModal').modal('hide');
+        });
+
+        $('#close-modal-sign').on('click', function () {
+            $('#editModal').modal('hide');
+        });
+
+          
+
+
+        $('#games_data_table tbody').on('click', '.delete-btn', function () {
+            var id = $(this).data('row-id');
+            axios.post(document.getElementById('tables_handler').value, {
+                operation: 'delete_game',
+                id: id
+            }).then(() => {
+            $('#games_data_table').DataTable().ajax.reload();
+            $('#rankings_data_table').DataTable().ajax.reload();
+             toastr.success('Game deleted successfully!');
+            });
+        });
+        new DataTable(`#games_data_table`, gamesTableOptions);
+        new DataTable(`#rankings_data_table`, rankingsTableOptions);
+
+
+    }
+</script>
+    {% else %}
+        <h2> Please <a href="{% url 'core:sign_up' %}">Sign up</a> /<a href="{% url 'core:sign_in' %}">Sign in</a>   First</h2>
+    {% endif %}
+{% endblock %}
